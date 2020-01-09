@@ -9,14 +9,10 @@
 #include <list>
 #include "utils.h"
 #include "tempsensor.cpp"
-#include "mahletempsensor.cpp"
-#include "temperaturesensor.cpp"
-#include "mahletemperaturesensor.cpp"
 #include "pid.cpp"
 #include "pwmfan.cpp"
 
-#define sensor1_pin A0
-#define sensor2_pin A1
+#define sensor_pin A1
 #define delimiter_value 266
 
 #define thermoDO 7
@@ -49,11 +45,7 @@ String nowString(){
   return nowString;
 }
 
-// BoschTemperatureSensor sensor1 = BoschTemperatureSensor(delimiter_value, sensor1_pin);
-MahleTemperatureSensor sensor2 = MahleTemperatureSensor(delimiter_value, sensor2_pin);
-// FIX THIS
-// BoschTempSensor newsensor1 = BoschTempSensor(delimiter_value, sensor1_pin);
-MahleTempSensor newsensor2 = MahleTempSensor(delimiter_value, sensor2_pin);
+TempSensor sensor = TempSensor(delimiter_value, sensor_pin);
 
 void initHardware () {
   Serial.begin(9600);
@@ -87,27 +79,14 @@ void initHardware () {
 
 void sensors_read(){
   sensors_read_flag = false;
-  // float sensor1_temperature = sensor1.getTemperature();
-  // float sensor1_resistance = sensor1.resistance;
-  float sensor2_temperature = sensor2.getTemperature();
-  float sensor2_resistance = sensor2.resistance;
-
-  // float newsensor1_temperature = newsensor1.getTemperature();
-  // float newsensor1_resistance = newsensor1.resistance;
-  float newsensor2_temperature = newsensor2.getTemperature();
-  float newsensor2_resistance = newsensor2.resistance;
+  float sensor_temperature = sensor.getTemperature();
+  float sensor_resistance = sensor.resistance;
 
   float thermocouple_temperature = thermocouple.readCelsius();
 
   String dataString = nowString() + ","
-    // + sensor1_temperature + ","
-    // + sensor1_resistance + ","
-    + sensor2_temperature + ","
-    + sensor2_resistance + ","
-    // + newsensor1_temperature + ","
-    // + newsensor1_resistance + ","
-    + newsensor2_temperature + ","
-    + newsensor2_resistance + ","
+    + sensor_temperature + ","
+    + sensor_resistance + ","
     + thermocouple_temperature + ",";
 
   if (logFile) {
@@ -152,14 +131,8 @@ void setup () {
   
   String logFileHeader = String()
     + "time,"
-    + "s2_t,"
-    + "s2_r,"
-    + "news2_t,"
-    + "news2_r,"
-    // + "ns1_t,"
-    // + "ns1_r,"
-    // + "ns2_t,"
-    // + "ns2_r,"
+    + "temp,"
+    + "resistance,"
     + "therma,";
 
   if (logFile) {
@@ -168,11 +141,6 @@ void setup () {
   }
 
   Serial.println(logFileHeader);
-
-  // sensor1 = BoschTemperatureSensor(delimiter_value, sensor1_pin);
-  // sensor2 = MahleTemperatureSensor(delimiter_value, sensor2_pin);
-  // newsensor1 = BoschTempSensor(delimiter_value, sensor1_pin);
-  // newsensor2 = MahleTempSensor(delimiter_value, sensor2_pin);
 
   MAX6675 thermocouple(thermoCLK, thermoCS, thermoDO);
 

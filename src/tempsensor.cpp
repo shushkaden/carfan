@@ -10,16 +10,15 @@ class TempSensor{
     float resistance;
     float sensor_temperature;
     uint8_t pin;
-    int intervals = 5;
-    float temperature_resistance_dependancy[5][5] =
+    int intervals = 4;
+    float temperature_resistance_dependancy[4][5] =
     // resistance, a, b, c, d for formula 
     // y = ax^3 + bx^2 + cx + d where x is resistance and y is temperature
     {
-      {660, 2, 3, 4, 5},
-      {300, 2, 3, 4, 5},
-      {200, 2, 3, 4, 5},
-      {100, 2, 3, 4, 5},
-      {0, 2, 3, 4, 5}
+      {951, -0.0000000014, 0.0000125856, -0.045017722, 86.33353376},
+      {513, 0.0000000019, 0.0000243565, -0.0810552502, 107.2423883},
+      {185, -0.0000004139, 0.000633673, -0.3878451016, 160.4001628},
+      {0, -0.0000108497, 0.0059138217, -1.287152349, 212.1403592}
     };
 
     TempSensor(int res, uint8_t arduino_pin){
@@ -28,16 +27,6 @@ class TempSensor{
     }
 
     float getTemperatureQube(float a, float b, float c, float d){
-      String dataString = String("new class") + ":"
-    // + sensor1_temperature + ","
-    // + sensor1_resistance + ","
-    + a + ","
-    + b + ","
-    // + newsensor1_temperature + ","
-    // + newsensor1_resistance + ","
-    + c + ","
-    + d + ",";
-      Serial.println(dataString);
       // y = ax^3 + bx^2 + cx + d
       float temperature = d;
       temperature += resistance * c;
