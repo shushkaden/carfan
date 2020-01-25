@@ -15,7 +15,6 @@ class TempSensor{
     unsigned int values_range = 6;
     std::list<float> temperature_values;
     std::list<float> delta_values;
-    int intervals = 4;
     float temperature_resistance_dependancy[4][5] =
     // resistance, a, b, c, d for formula 
     // y = ax^3 + bx^2 + cx + d where x is resistance and y is temperature
@@ -88,11 +87,15 @@ class TempSensor{
       while (delta < positive_temperature_delta_dependancy[interval][0]){interval++;}
       
       if (interval == 0){
-        increment = delta / positive_temperature_delta_dependancy[interval][0] * positive_temperature_delta_dependancy[interval][1];
+        increment = delta;
+        increment /= positive_temperature_delta_dependancy[interval][0];
+        increment *= positive_temperature_delta_dependancy[interval][1];
       } else {
-        float multiplier = (positive_temperature_delta_dependancy[interval][1] - positive_temperature_delta_dependancy[interval-1][1]) / 
-          (positive_temperature_delta_dependancy[interval][0] - positive_temperature_delta_dependancy[interval-1][0]);
-        increment = delta * multiplier;
+        float a = positive_temperature_delta_dependancy[interval][1] - positive_temperature_delta_dependancy[interval-1][1];
+        float b = positive_temperature_delta_dependancy[interval][0] - positive_temperature_delta_dependancy[interval-1][0];
+        increment = delta;
+        increment *= a;
+        increment /= b;
       }
 
       return increment;
@@ -104,11 +107,15 @@ class TempSensor{
       while (delta > negative_temperature_delta_dependancy[interval][0]){interval++;}
       
       if (interval == 0){
-        increment = delta / negative_temperature_delta_dependancy[interval][0] * negative_temperature_delta_dependancy[interval][1];
+        increment = delta;
+        increment /= negative_temperature_delta_dependancy[interval][0];
+        increment *= negative_temperature_delta_dependancy[interval][1];
       } else {
-        float multiplier = (negative_temperature_delta_dependancy[interval][1] - negative_temperature_delta_dependancy[interval-1][1]) / 
-          (negative_temperature_delta_dependancy[interval][0] - negative_temperature_delta_dependancy[interval-1][0]);
-        increment = delta * multiplier;
+        float a = negative_temperature_delta_dependancy[interval][1] - negative_temperature_delta_dependancy[interval-1][1];
+        float b = negative_temperature_delta_dependancy[interval][0] - negative_temperature_delta_dependancy[interval-1][0];
+        increment = delta;
+        increment *= a;
+        increment /= b;
       }
 
       return increment;
@@ -121,7 +128,17 @@ class TempSensor{
       return getIncrementByNegativeDelta(delta);
     }
 
-    float getTemperature(){
+    float smoother(float diff, float max_val, float min_val, float devider){
+      float result = abs(diff);
+      result /= devider;
+      result = min_float(max_val, result);
+      result = max_float(min_val, result);
+      result *= diff;
+
+      return result;
+    }
+
+    float getCurrentTemperature(){
       float delta = delta_values.front();
       float increment = getIncrementByDelta(delta);
       float countedTemperature = temperature_values.front() + increment;
@@ -129,11 +146,20 @@ class TempSensor{
       return countedTemperature;
     }
 
+    float getCurrentDelta(){
+      return delta_values.front();
+    }
+
     float getSmoothTemperature(){
       float oldTemprature = temperature_values.front();
       float newTemprature = getRawTemperature();
       float diff = newTemprature - oldTemprature;
-      float smoothTemperature = oldTemprature + diff * min(max((abs(diff)/2), 0.05), 1);
+
+      if (diff == 0){
+        return newTemprature;
+      }
+
+      float smoothTemperature = oldTemprature + smoother(diff, 1.0, 0.05, 2.0);
 
       return smoothTemperature;
     }
@@ -142,7 +168,7 @@ class TempSensor{
       float oldDelta = delta_values.front();
       float newDelta = temperature_values.front() - temperature_values.back();
       float diff = newDelta - oldDelta;
-      float smoothDelta = oldDelta + diff * min(max((abs(diff)), 0.1), 1);
+      float smoothDelta = oldDelta + smoother(diff, 1.0, 0.1, 1.0);
 
       return smoothDelta;
     }

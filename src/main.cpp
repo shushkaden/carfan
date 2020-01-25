@@ -79,15 +79,20 @@ void initHardware () {
 
 void sensors_read(){
   sensors_read_flag = false;
-  float sensor_temperature = sensor.getTemperature();
+  float sensor_temperature = sensor.getCurrentTemperature();
+  // float raw_temperature = sensor.getRawTemperature();
   float sensor_resistance = sensor.resistance;
+  float delta  = sensor.getCurrentDelta();
 
   float thermocouple_temperature = thermocouple.readCelsius();
 
-  String dataString = nowString() + ","
+  String dataString = String() + ","
     + sensor_temperature + ","
+    // + raw_temperature + ","
     + sensor_resistance + ","
-    + thermocouple_temperature + ",";
+    + delta + ","
+    // + thermocouple_temperature + ",";
+    ;
 
   if (logFile) {
     logFile.println(dataString);
@@ -133,6 +138,7 @@ void setup () {
     + "time,"
     + "temp,"
     + "resistance,"
+    // + "delta,"
     + "therma,";
 
   if (logFile) {
