@@ -9,7 +9,7 @@
 #include <list>
 #include "utils.h"
 #include "tempsensor.cpp"
-#include "pid.cpp"
+// #include "pid.cpp"
 #include "pwmfan.cpp"
 
 #define sensor_pin A1
@@ -169,6 +169,7 @@ ISR (TIMER2_COMPA_vect)
 
 void loop () {
   if (sensors_read_flag){
+    sensor.updateData();
     sensors_read();
   }
 }
